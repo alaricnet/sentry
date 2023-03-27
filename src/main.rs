@@ -1,16 +1,19 @@
-
-
 use std::env;
+use prettytable::{Table, Row, Cell};
+use prettytable::{row, cell};
+
+
 use reqwest::blocking::Client;
 use serde_json::Value;
-use serde_json::json;
 use whois_rust::{WhoIs, WhoIsLookupOptions};
 use reqwest::header::{HeaderMap, CONTENT_TYPE};
+
 
 
 const OPENPHISH_API_URL: &str = "https://openphish.com/feed.txt";
 const URLHAUS_API_URL: &str = "https://urlhaus-api.abuse.ch/v1/url/";
 
+// A CLI that checks the input URL for domain information, phishing links and Malicious URLs
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
@@ -22,17 +25,17 @@ fn main() {
     let openphish_result = check_openphish(url);
     let urlhaus_result = check_urlhaus(url);
 
-    println!("OpenPhish: {}", if openphish_result { "\x1b[32m✓\x1b[0m" } else { "\x1b[31m✗\x1b[0m" });
-    println!("URLhaus: {}", if urlhaus_result { "\x1b[32m✓\x1b[0m" } else { "\x1b[31m✗\x1b[0m" });
+    let mut table = Table::new();
+    table.add_row(Row::new(vec![Cell::new("Check").style_spec("bFg"), Cell::new("Result").style_spec("bFg")]));
+    table.add_row(row![ "OpenPhish", if openphish_result { "✓" } else { "✗" } ]);
+    table.add_row(row![ "URLhaus", if urlhaus_result { "✓" } else { "✗" } ]);
+
+    table.print_tty(true);
 
     if let Some(registration_info) = get_domain_registration_info(url) {
         println!("\nDomain registration info:\n{}", registration_info);
     }
 }
-
-// ... (rest of the functions remain unchanged)
-
-
 
 
 
